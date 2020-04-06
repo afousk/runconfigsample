@@ -1,0 +1,52 @@
+plugins {
+    id 'application'
+    id 'java'
+    id 'org.openjfx.javafxplugin' version '0.0.8'
+    id 'com.install4j.gradle' version '7.0'
+}
+
+group = 'de.runconfigsample'
+version = '1.0.0'
+sourceCompatibility = 11
+
+mainClassName = 'de.runconfigsample.MainGradle'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly(files("${project.projectDir}/lib/i4jruntime.jar"))
+}
+
+javafx {
+    version = "13"
+    modules = ['javafx.base', 'javafx.graphics', 'javafx.controls', 'javafx.web', 'javafx.fxml', 'javafx.swing', 'javafx.media']
+}
+
+jar {
+    manifest {
+        attributes(
+                'Class-Path': configurations.runtimeClasspath.files.collect { "lib/" + it.getName() }.join(' '))
+    }
+}
+
+
+tasks.run {
+    classpath = configurations.compileClasspath + sourceSets.main.output
+}
+
+task copyRuntimeLibs(type: Copy) {
+    into "${project.buildDir}/lib"
+    from configurations.runtimeClasspath.files
+}
+tasks.build.finalizedBy(copyRuntimeLibs)
+
+install4j {
+    installDir = file("${project.property('de.runconfigsample.install4jDir')}")
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
